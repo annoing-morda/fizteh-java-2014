@@ -10,8 +10,8 @@ import java.util.TreeSet;
 import ru.fizteh.fivt.storage.strings.Table;
 
 public class MultiFileHashMap implements Table {
-    final static int FILE_MAPS_CNT = 256;
-    final static int DIRS_CNT = 16;
+    final int FILE_MAPS_CNT = 256;
+    final int DIRS_CNT = 16;
     private File rootDir;
     private BitSet openedMaps;
     private FileMap[] maps;

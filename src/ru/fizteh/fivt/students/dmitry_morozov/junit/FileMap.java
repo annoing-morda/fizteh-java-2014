@@ -40,8 +40,9 @@ public class FileMap implements Table {
 
         while (true) {
             String key = readString(in);
-            if (key == null)
+            if (key == null) {
                 break;
+            }
             String value = readString(in);
             if (value == null) {
                 in.close();
