@@ -8,7 +8,8 @@ import ru.fizteh.fivt.students.dmitry_morozov.junit.interpreter.HandlerReturnRes
 
 public class Main {
 
-    public static HandlerReturn commandSplitting(String command, DBInterpreter inter) { 
+    public static HandlerReturn commandSplitting(String command,
+            DBInterpreter inter) {
         String[] firstSplitted = command.split(" ");
         String[] toGive = new String[firstSplitted.length];
         int j = 0;
@@ -55,6 +56,8 @@ public class Main {
                     case EXIT:
                         System.out.print(ret.getMessage());
                         i = commands.length;
+                        break;
+                    default:
                         break;
                     }
                 }
@@ -108,6 +111,8 @@ public class Main {
                         case EXIT:
                             System.out.print(ret.getMessage());
                             contFlag = false;
+                            break;
+                        default:
                             break;
                         }
                     }

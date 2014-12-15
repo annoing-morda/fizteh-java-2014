@@ -38,17 +38,15 @@ public class FileMap implements Table {
         }
         DataInputStream in = new DataInputStream(new FileInputStream(dbFile));
 
-       
-
         while (true) {
             String key = readString(in);
-            if(key == null) 
+            if (key == null)
                 break;
-            String value = readString(in);            
+            String value = readString(in);
             if (value == null) {
                 in.close();
                 throw new BadDBFileException("Couldn't set rw options");
-            }            
+            }
             table.put(key, value);
         }
         in.close();
@@ -57,12 +55,13 @@ public class FileMap implements Table {
 
     /**
      * @return String read from file. If meets end of file, returns null.
-     * @throws BadDBFileException 
-     * @throws IOException 
+     * @throws BadDBFileException
+     * @throws IOException
      * */
 
-    private String readString(DataInputStream in) throws IOException, BadDBFileException {
-        final int sizeOfInt= 4;
+    private String readString(DataInputStream in) throws IOException,
+            BadDBFileException {
+        final int sizeOfInt = 4;
         int len;
         String res = "";
         if (in.available() >= sizeOfInt) {
@@ -77,9 +76,10 @@ public class FileMap implements Table {
                 res += curChar;
                 len--;
             }
-        } else
+        } else {
             return null;
-        return res;        
+        }
+        return res;
     }
 
     public String put(String key, String value) throws IllegalArgumentException {
@@ -164,8 +164,9 @@ public class FileMap implements Table {
         out.flush();
         out.close();
     }
-    
-    private void writeData(DataOutputStream out, String toWrite) throws IOException {
+
+    private void writeData(DataOutputStream out, String toWrite)
+            throws IOException {
         int len = toWrite.length();
         out.writeInt(len * 2);
         out.writeChars(toWrite);

@@ -32,7 +32,7 @@ public class ReversableMFHM extends MultiFileHashMap {
         int cnt = opStack.size();
         while (!opStack.isEmpty()) {
             ChangingCommand t = opStack.pop();
-            if (t._c == CommandName.PUT) {
+            if (t.cName == CommandName.PUT) {
                 super.put(t.args[0], t.args[1]);
             } else {
                 super.remove(t.args[0]);
