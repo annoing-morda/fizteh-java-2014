@@ -10,8 +10,8 @@ import ru.fizteh.fivt.storage.strings.TableProvider;
 public class DBCollection implements TableProvider {
     private String dirPath;
     private FileMap maps;
-    
-    public DBCollection(String dirPath) throws Exception {
+
+    public DBCollection(String dirPath) throws IllegalArgumentException {
         this.dirPath = dirPath;
         maps = null;
         if (dirPath == null) {
@@ -25,14 +25,14 @@ public class DBCollection implements TableProvider {
             dirPath = tmp;
         }
         try {
-            maps = new FileMap(dirPath + "/tables_info.dat");            
-        } catch (Exception e) {
-            throw new IllegalArgumentException();
+            maps = new FileMap(dirPath + "/tables_info.dat");
+        } catch (BadDBFileException | IOException e) {
+            throw new IllegalArgumentException(e.getMessage());
         }
     }
 
     public List<String> showTables() { // Actually doesn't
-                                                  // throw anything.
+                                       // throw anything.
         return maps.list();
     }
 
@@ -45,8 +45,8 @@ public class DBCollection implements TableProvider {
         Table res;
         try {
             res = new ReversableMFHM(name);
-        } catch (Exception e) {
-            throw new IllegalArgumentException();
+        } catch (BadDBFileException e) {
+            throw new IllegalArgumentException(e.getMessage());
         }
         return res;
     }
@@ -59,13 +59,13 @@ public class DBCollection implements TableProvider {
         }
         maps.put(name, dirPath + "/" + name);
         File dir = new File(dirPath + "/" + name);
-        if(!dir.mkdirs()) {
+        if (!dir.mkdirs()) {
             throw new IllegalArgumentException();
         }
         ReversableMFHM res;
         try {
             res = new ReversableMFHM(dirPath + "/" + name);
-        } catch (Exception e) {
+        } catch (BadDBFileException e) {
             maps.remove(name);
             throw new IllegalStateException();
         }
@@ -85,7 +85,7 @@ public class DBCollection implements TableProvider {
             throw new IllegalStateException();
         }
     }
-    
+
     public void emeregencyExit() {
         try {
             maps.exit();

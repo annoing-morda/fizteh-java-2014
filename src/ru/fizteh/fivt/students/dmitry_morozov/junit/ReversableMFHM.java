@@ -5,7 +5,7 @@ import java.util.Stack;
 public class ReversableMFHM extends MultiFileHashMap {
     Stack<ChangingCommand> opStack;
 
-    public ReversableMFHM(String path) throws Exception {
+    public ReversableMFHM(String path) throws BadDBFileException {
         super(path);
         opStack = new Stack<>();
     }

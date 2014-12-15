@@ -98,10 +98,9 @@ public class DBInterpreter {
             return handleExit();
         case "show":
             return handleShowTables(comAndParams, bIndex + 1, eIndex);
+        default:
+            return new HandlerReturn(HandlerReturnResult.NO_SUCH_COMMAND, "");
         }
-
-        return new HandlerReturn(HandlerReturnResult.EXIT, "");
-
     }
 
     public HandlerReturn handlePut(String[] comAndParams, int bIndex, int eIndex) {

@@ -48,7 +48,7 @@ public class MultiFileHashMap implements Table {
             String curPath = getPath(mapNum);
             try {
                 maps[mapNum] = new FileMap(curPath);
-            } catch (Exception e) {
+            } catch (IOException | BadDBFileException e) {
                 e.printStackTrace();
                 System.err.println("Couldn't access" + curPath);
             }
@@ -68,7 +68,7 @@ public class MultiFileHashMap implements Table {
             String curPath = getPath(mapNum);
             try {
                 maps[mapNum] = new FileMap(curPath);
-            } catch (Exception e) {
+            } catch (IOException | BadDBFileException e) {
                 e.printStackTrace();
                 System.err.println("Couldn't access" + curPath);
             }
@@ -88,7 +88,7 @@ public class MultiFileHashMap implements Table {
             String curPath = getPath(mapNum);
             try {
                 maps[mapNum] = new FileMap(curPath);
-            } catch (Exception e) {
+            } catch (IOException | BadDBFileException e) {
                 System.err.println("Couldn't access" + curPath);
                 e.printStackTrace();
             }
@@ -108,7 +108,7 @@ public class MultiFileHashMap implements Table {
                 String curPath = getPath(i);
                 try {
                     maps[i] = new FileMap(curPath);
-                } catch (Exception e) {
+                } catch (IOException | BadDBFileException e) {
                     System.err.println("Couldn't access" + curPath);
                     e.printStackTrace();
                 }
@@ -184,13 +184,14 @@ public class MultiFileHashMap implements Table {
             if (openedMaps.get(i)) {
                 res += maps[i].size();
             } else {
+                String curPath = getPath(i);
                 try {
-                    maps[i] = new FileMap(getPath(i)); // If couldn't access
-                                                       // subdatabase,there are
-                                                       // no records.
+                    maps[i] = new FileMap(curPath);
                     res += maps[i].size();
                     openedMaps.set(i);
-                } catch (Exception e) {
+                } catch (IOException | BadDBFileException e) {
+                    System.err.println("Couldn't access" + curPath);
+                    e.printStackTrace();
                 }
             }
         }
