@@ -26,7 +26,7 @@ public class FileMap implements Table {
         dbFile = new File(path);
         if (!dbFile.exists()) {
             if (!dbFile.createNewFile()) {
-                throw new BadDBFileException("Couldldn't create db file");
+                throw new BadDBFileException("Couldn't create db file");
             }
         } else {
             if (!dbFile.isFile()) {

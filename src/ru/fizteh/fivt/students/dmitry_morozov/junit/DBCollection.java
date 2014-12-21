@@ -44,7 +44,7 @@ public class DBCollection implements TableProvider {
         }
         Table res;
         try {
-            res = new ReversableMFHM(name);
+            res = new MyTable(name);
         } catch (BadDBFileException e) {
             throw new IllegalArgumentException(e.getMessage());
         }
@@ -62,9 +62,9 @@ public class DBCollection implements TableProvider {
         if (!dir.mkdirs()) {
             throw new IllegalArgumentException();
         }
-        ReversableMFHM res;
+        MyTable res;
         try {
-            res = new ReversableMFHM(dirPath + "/" + name);
+            res = new MyTable(dirPath + "/" + name);
         } catch (BadDBFileException e) {
             maps.remove(name);
             throw new IllegalStateException();
@@ -86,7 +86,7 @@ public class DBCollection implements TableProvider {
         }
     }
 
-    public void emeregencyExit() {
+    public void exit() {
         try {
             maps.exit();
         } catch (IOException e) {

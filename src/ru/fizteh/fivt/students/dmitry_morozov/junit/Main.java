@@ -65,7 +65,7 @@ public class Main {
 
         } catch (Exception e) {
             System.err.println(e.getMessage());
-            inter.emeregencyExit();
+            inter.emergencyExit();
             System.exit(1);
         }
         inter.handleExit();
@@ -73,7 +73,12 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        DBInterpreter inter = new DBInterpreter(System.getProperty("db.file"));
+        DBInterpreter inter;
+        try {
+            inter = new DBInterpreter(System.getProperty("fizteh.db.dir"));
+        } catch (IllegalArgumentException e1) {
+            return;
+        }
         if (args.length > 0) {
             batchMode(args, inter);
         }
@@ -106,7 +111,7 @@ public class Main {
                                     + ret.getMessage());
                             break;
                         case TABLE_NOT_CHOSEN:
-                            System.out.println("Table not chosen");
+                            System.out.println("no table");
                             break;
                         case EXIT:
                             System.out.print(ret.getMessage());
@@ -120,7 +125,7 @@ public class Main {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            inter.emeregencyExit();
+            inter.emergencyExit();
         } finally {
             in.close();
         }

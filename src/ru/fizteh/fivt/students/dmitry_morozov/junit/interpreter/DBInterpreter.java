@@ -2,18 +2,18 @@ package ru.fizteh.fivt.students.dmitry_morozov.junit.interpreter;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.TreeSet;
 import java.util.List;
+import java.util.TreeSet;
 
 import ru.fizteh.fivt.storage.strings.Table;
 import ru.fizteh.fivt.storage.strings.TableProviderFactory;
 import ru.fizteh.fivt.students.dmitry_morozov.junit.DBCollection;
+import ru.fizteh.fivt.students.dmitry_morozov.junit.MyTable;
 import ru.fizteh.fivt.students.dmitry_morozov.junit.MyTableProviderFactory;
-import ru.fizteh.fivt.students.dmitry_morozov.junit.ReversableMFHM;
 
 public class DBInterpreter {
     private DBCollection provider;
-    private ReversableMFHM table;
+    private MyTable table;
     private HashMap<String, Integer> argsCount;
     private TreeSet<String> commandsForTable;
 
@@ -22,7 +22,7 @@ public class DBInterpreter {
         try {
             provider = (DBCollection) factory.create(path);
             if (provider == null) {
-                System.out.println("Usage: java -Ddb.file=<path>");
+                System.out.println("Usage: java -Dfizteh.db.dir=<path>");
                 return;
             }
         } catch (IllegalArgumentException e) {
@@ -62,7 +62,8 @@ public class DBInterpreter {
         String command = comAndParams[bIndex].toLowerCase();
         Integer expectedArgsCount = argsCount.get(command);
         if (expectedArgsCount == null) {
-            return new HandlerReturn(HandlerReturnResult.NO_SUCH_COMMAND, "");
+            return new HandlerReturn(HandlerReturnResult.NO_SUCH_COMMAND,
+                    command + "\n");
         } else {
             if (expectedArgsCount > eIndex - bIndex - 1) {
                 return new HandlerReturn(
@@ -99,7 +100,8 @@ public class DBInterpreter {
         case "show":
             return handleShowTables(comAndParams, bIndex + 1, eIndex);
         default:
-            return new HandlerReturn(HandlerReturnResult.NO_SUCH_COMMAND, "");
+            return new HandlerReturn(HandlerReturnResult.NO_SUCH_COMMAND,
+                    command + "\n");
         }
     }
 
@@ -136,8 +138,9 @@ public class DBInterpreter {
     public HandlerReturn handleRemove(String[] comAndParams, int bIndex,
             int eIndex) {
         String res;
+        String key = comAndParams[bIndex];
         try {
-            res = table.get(comAndParams[bIndex]);
+            res = table.get(key);
         } catch (IllegalArgumentException e) {
             return new HandlerReturn(HandlerReturnResult.ERROR, "");
         }
@@ -145,13 +148,19 @@ public class DBInterpreter {
             res = "not found\n";
         } else {
             res = "removed\n";
+            table.remove(key);
         }
         return new HandlerReturn(HandlerReturnResult.SUCCESS, res);
     }
 
     public HandlerReturn handleList() {
         String res;
-        res = String.join(", ", table.list());
+        List<String> list = table.list();
+        if (list.size() == 0) {
+            return new HandlerReturn(HandlerReturnResult.SUCCESS, "");
+        }
+        res = String.join(", ", list);
+        res += (res == "") ? "" : "\n";
         return new HandlerReturn(HandlerReturnResult.SUCCESS, res);
     }
 
@@ -173,21 +182,23 @@ public class DBInterpreter {
     }
 
     public HandlerReturn handleUse(String[] comAndParams, int bIndex, int eIndex) {
-        if (table == null) {
-            try {
-                table = (ReversableMFHM) provider
-                        .getTable(comAndParams[bIndex]);
-            } catch (IllegalArgumentException e) {
-                return new HandlerReturn(HandlerReturnResult.ERROR, "");
-            }
-            if (table == null) {
-                return new HandlerReturn(HandlerReturnResult.SUCCESS,
-                        comAndParams[bIndex] + "not exists\n");
-            } else {
-                return new HandlerReturn(HandlerReturnResult.SUCCESS, "using "
-                        + comAndParams[bIndex] + "\n");
-            }
+        MyTable newTable;
+        try {
+            newTable = (MyTable) provider.getTable(comAndParams[bIndex]);
+        } catch (IllegalArgumentException e1) {
+            return new HandlerReturn(HandlerReturnResult.ERROR, "");
         }
+        if (newTable == null) {
+            return new HandlerReturn(HandlerReturnResult.SUCCESS,
+                    comAndParams[bIndex] + " not exists\n");
+        }
+        // If table isn't chosen.
+        if (table == null) {
+            table = newTable;
+            return new HandlerReturn(HandlerReturnResult.SUCCESS, "using "
+                    + comAndParams[bIndex] + "\n");
+        }
+        // If table is already chosen.
         int unsaved = table.getUnsavedChanges();
         if (unsaved > 0) {
             return new HandlerReturn(HandlerReturnResult.SUCCESS, unsaved
@@ -198,18 +209,9 @@ public class DBInterpreter {
         } catch (IOException e) {
             System.err.println("Couldn't save" + table.getName() + "on disk");
         }
-        try {
-            table = (ReversableMFHM) provider.getTable(comAndParams[bIndex]);
-        } catch (IllegalArgumentException e) {
-            return new HandlerReturn(HandlerReturnResult.ERROR, "");
-        }
-        if (table == null) {
-            return new HandlerReturn(HandlerReturnResult.SUCCESS,
-                    comAndParams[bIndex] + "not exists\n");
-        } else {
-            return new HandlerReturn(HandlerReturnResult.SUCCESS, "using "
-                    + comAndParams[bIndex] + "\n");
-        }
+        table = newTable;
+        return new HandlerReturn(HandlerReturnResult.SUCCESS, "using "
+                + comAndParams[bIndex] + "\n");
     }
 
     public HandlerReturn handleCreate(String[] comAndParams, int bIndex,
@@ -251,9 +253,9 @@ public class DBInterpreter {
                     "show " + comAndParams[bIndex] + "\n");
         }
         String res = "";
-        List<String> tnames = provider.showTables();
+        List<String> tableNames = provider.showTables();
         String tableName = table == null ? "" : table.getName();
-        for (String curName : tnames) {
+        for (String curName : tableNames) {
             if (tableName.equals(curName)) {
                 res += curName + " " + table.size() + "\n";
             } else {
@@ -265,16 +267,18 @@ public class DBInterpreter {
 
     public HandlerReturn handleExit() {
         if (table == null) {
+            provider.exit();
             return new HandlerReturn(HandlerReturnResult.EXIT, "good bye\n");
         }
         if (table.getUnsavedChanges() > 0) {
             return new HandlerReturn(HandlerReturnResult.ERROR,
                     "there're unsaved changes\n");
         }
+        provider.exit();
         return new HandlerReturn(HandlerReturnResult.EXIT, "good bye\n");
     }
 
-    public void emeregencyExit() {
+    public void emergencyExit() {
         try {
             if (table != null) {
                 table.exit();
@@ -282,9 +286,8 @@ public class DBInterpreter {
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            provider.emeregencyExit();
+            provider.exit();
         }
-
     }
 
 }

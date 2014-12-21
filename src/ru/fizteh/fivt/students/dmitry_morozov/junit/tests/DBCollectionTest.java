@@ -26,7 +26,7 @@ public class DBCollectionTest {
         dirPath = tmpFolder.newFolder().getAbsolutePath();
         provider = factory.create(dirPath);
     }
-
+    
     @Test
     public void createTable() {
         provider.createTable("table");
