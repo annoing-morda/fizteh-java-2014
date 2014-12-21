@@ -154,13 +154,9 @@ public class DBInterpreter {
     }
 
     public HandlerReturn handleList() {
-        String res;
-        List<String> list = table.list();
-        if (list.size() == 0) {
-            return new HandlerReturn(HandlerReturnResult.SUCCESS, "");
-        }
-        res = String.join(", ", list);
-        res += (res == "") ? "" : "\n";
+        String res;        
+        res = String.join(", ", table.list());
+        res += (res.equals("")) ? "" : "\n";
         return new HandlerReturn(HandlerReturnResult.SUCCESS, res);
     }
 
