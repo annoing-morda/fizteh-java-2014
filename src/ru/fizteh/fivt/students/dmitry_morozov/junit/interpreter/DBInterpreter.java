@@ -255,7 +255,13 @@ public class DBInterpreter {
             if (tableName.equals(curName)) {
                 res += curName + " " + table.size() + "\n";
             } else {
-                res += curName + " " + provider.getTable(curName).size() + "\n";
+                MyTable curTable = (MyTable) provider.getTable(curName); 
+                res += curName + " " + curTable.size() + "\n";
+                try {
+                    curTable.exit();
+                } catch (IOException e) {
+                    System.err.println("Interrupted access to database: " + curName);
+                }
             }
         }
         return new HandlerReturn(HandlerReturnResult.SUCCESS, res);
@@ -264,14 +270,20 @@ public class DBInterpreter {
     public HandlerReturn handleExit() {
         if (table == null) {
             provider.exit();
-            return new HandlerReturn(HandlerReturnResult.EXIT, "good bye\n");
+            return new HandlerReturn(HandlerReturnResult.EXIT, "goodbye\n");
         }
         if (table.getUnsavedChanges() > 0) {
             return new HandlerReturn(HandlerReturnResult.ERROR,
                     "there're unsaved changes\n");
         }
+        try {
+            table.exit();
+        } catch (IOException e) {
+            System.err.println("Couldn't save " + table.getName());
+            return new HandlerReturn(HandlerReturnResult.EXIT, "");
+        }
         provider.exit();
-        return new HandlerReturn(HandlerReturnResult.EXIT, "good bye\n");
+        return new HandlerReturn(HandlerReturnResult.EXIT, "goodbye\n");
     }
 
     public void emergencyExit() {
