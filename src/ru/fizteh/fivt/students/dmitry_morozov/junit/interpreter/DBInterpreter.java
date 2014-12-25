@@ -55,7 +55,8 @@ public class DBInterpreter {
 
     }
 
-    public HandlerReturn handle(String[] comAndParams, int bIndex, int eIndex) throws IOException{
+    public HandlerReturn handle(String[] comAndParams, int bIndex, int eIndex)
+            throws IOException {
         if (comAndParams.length < 1) {
             return new HandlerReturn(HandlerReturnResult.EXIT, "");
         }
@@ -154,7 +155,7 @@ public class DBInterpreter {
     }
 
     public HandlerReturn handleList() {
-        String res;        
+        String res;
         res = String.join(", ", table.list());
         res += (res.equals("")) ? "" : "\n";
         return new HandlerReturn(HandlerReturnResult.SUCCESS, res);
@@ -180,7 +181,8 @@ public class DBInterpreter {
     public HandlerReturn handleUse(String[] comAndParams, int bIndex, int eIndex) {
         TableWithTransactions newTable;
         try {
-            newTable = (TableWithTransactions) provider.getTable(comAndParams[bIndex]);
+            newTable = (TableWithTransactions) provider
+                    .getTable(comAndParams[bIndex]);
         } catch (IllegalArgumentException e1) {
             return new HandlerReturn(HandlerReturnResult.ERROR, "");
         }
@@ -255,12 +257,14 @@ public class DBInterpreter {
             if (tableName.equals(curName)) {
                 res += curName + " " + table.size() + "\n";
             } else {
-                TableWithTransactions curTable = (TableWithTransactions) provider.getTable(curName); 
+                TableWithTransactions curTable = (TableWithTransactions) provider
+                        .getTable(curName);
                 res += curName + " " + curTable.size() + "\n";
                 try {
                     curTable.exit();
                 } catch (IOException e) {
-                    System.err.println("Interrupted access to database: " + curName);
+                    System.err.println("Interrupted access to database: "
+                            + curName);
                 }
             }
         }

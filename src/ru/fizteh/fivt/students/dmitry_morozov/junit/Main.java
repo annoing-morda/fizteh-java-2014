@@ -26,7 +26,8 @@ public class Main {
         try {
             return inter.handle(toGive, 0, j);
         } catch (IOException e) {
-            return new HandlerReturn (HandlerReturnResult.ERROR, "Couldn't close provider");
+            return new HandlerReturn(HandlerReturnResult.ERROR,
+                    "Couldn't close provider");
         }
     }
 
