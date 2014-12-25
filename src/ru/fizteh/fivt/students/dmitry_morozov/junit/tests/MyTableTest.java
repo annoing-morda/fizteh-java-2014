@@ -30,7 +30,8 @@ public class MyTableTest {
 
     @Test
     public void getNameTest() {
-        Assert.assertEquals("table", table.getName());
+        String actualName = table.getName();
+        Assert.assertEquals("table", actualName);
     }
     
     @Test
@@ -90,6 +91,7 @@ public class MyTableTest {
         table.remove("1");
         table.put("1", "uno");
         Assert.assertEquals(4, table.rollback());
+        Assert.assertEquals(0, table.size());
     }
     
     @Test
@@ -100,6 +102,9 @@ public class MyTableTest {
         table.remove("1");
         table.put("1", "uno");
         Assert.assertEquals(4, table.commit());
+        Assert.assertNull(table.get("3"));
+        Assert.assertEquals("two", table.get("2"));
+        Assert.assertEquals("uno", table.get("1"));
     }
     
     @Test

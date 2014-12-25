@@ -1,5 +1,6 @@
 package ru.fizteh.fivt.students.dmitry_morozov.junit;
 
+import java.io.IOException;
 import java.util.Scanner;
 
 import ru.fizteh.fivt.students.dmitry_morozov.junit.interpreter.DBInterpreter;
@@ -22,7 +23,11 @@ public class Main {
         if (0 == j) {
             return new HandlerReturn(HandlerReturnResult.SUCCESS, "");
         }
-        return inter.handle(toGive, 0, j);
+        try {
+            return inter.handle(toGive, 0, j);
+        } catch (IOException e) {
+            return new HandlerReturn (HandlerReturnResult.ERROR, "Couldn't close provider");
+        }
     }
 
     public static void batchMode(String[] args, DBInterpreter inter) {
@@ -65,10 +70,19 @@ public class Main {
 
         } catch (Exception e) {
             System.err.println(e.getMessage());
-            inter.emergencyExit();
+            try {
+                inter.emergencyExit();
+                System.err.println("Emergency exit succeeded");
+            } catch (IOException e1) {
+                System.err.println("Emergency exit failed");
+            }
             System.exit(1);
         }
-        inter.handleExit();
+        try {
+            inter.handleExit();
+        } catch (IOException e) {
+            System.exit(1);
+        }
         System.exit(0);
     }
 
@@ -125,7 +139,12 @@ public class Main {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            inter.emergencyExit();
+            try {
+                inter.emergencyExit();
+                System.err.println("Emergency exit succeeded");
+            } catch (IOException e1) {
+                System.err.println("Emergency exit failed");
+            }
         } finally {
             in.close();
         }

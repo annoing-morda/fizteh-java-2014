@@ -9,11 +9,9 @@ public class Utils {
     static boolean removeDirectory(String path) {
         File dir = new File(path);
         if (!dir.exists()) {
-            System.err.println("table has been already deleted from disk");
             return false;
         }
         if (!dir.isDirectory()) {
-            System.err.println("table directory has been damaged");
             return false;
         }
         File[] flist = dir.listFiles();

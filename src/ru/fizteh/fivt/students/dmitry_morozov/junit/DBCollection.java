@@ -10,6 +10,7 @@ import ru.fizteh.fivt.storage.strings.TableProvider;
 public class DBCollection implements TableProvider {
     private String dirPath;
     private FileMap maps;
+    private static final String INFO_FILE_NAME = "tables_info.dat";
 
     public DBCollection(String dirPath) throws IllegalArgumentException {
         this.dirPath = dirPath;
@@ -17,15 +18,11 @@ public class DBCollection implements TableProvider {
         if (dirPath == null) {
             throw new IllegalArgumentException("path is null");
         }
-        if (dirPath.endsWith("/") && !dirPath.equals("/")) {
-            String tmp = "";
-            for (int i = 0; i < dirPath.length() - 1; i++) {
-                tmp += dirPath.charAt(i);
-            }
-            dirPath = tmp;
+        if (dirPath.endsWith(File.separator) && !dirPath.equals(File.separator)) {
+            this.dirPath = dirPath.substring(0, dirPath.length() - 1);
         }
         try {
-            maps = new FileMap(dirPath + "/tables_info.dat");
+            maps = new FileMap(dirPath + File.separator + INFO_FILE_NAME);
         } catch (BadDBFileException | IOException e) {
             throw new IllegalArgumentException(e.getMessage());
         }
@@ -44,7 +41,7 @@ public class DBCollection implements TableProvider {
         }
         Table res;
         try {
-            res = new MyTable(name);
+            res = new TableWithTransactions(name);
         } catch (BadDBFileException e) {
             throw new IllegalArgumentException(e.getMessage());
         }
@@ -57,14 +54,14 @@ public class DBCollection implements TableProvider {
         if (maps.get(name) != null) {
             return null;
         }
-        maps.put(name, dirPath + "/" + name);
-        File dir = new File(dirPath + "/" + name);
+        maps.put(name, dirPath + File.separator + name);
+        File dir = new File(dirPath + File.separator + name);
         if (!dir.mkdirs()) {
             throw new IllegalArgumentException();
         }
-        MyTable res;
+        TableWithTransactions res;
         try {
-            res = new MyTable(dirPath + "/" + name);
+            res = new TableWithTransactions(dirPath + File.separator + name);
         } catch (BadDBFileException e) {
             maps.remove(name);
             throw new IllegalStateException();
@@ -77,7 +74,7 @@ public class DBCollection implements TableProvider {
         String tname = maps.get(name);
         if (tname != null) { // Database found.
             if (!Utils.removeDirectory(tname)) {
-                System.err.println("deleting table from disk failed");
+                throw new IllegalStateException("Couldn't remove directory");
             } else {
                 maps.remove(name);
             }
@@ -86,11 +83,7 @@ public class DBCollection implements TableProvider {
         }
     }
 
-    public void exit() {
-        try {
-            maps.exit();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public void close() throws IOException {
+        maps.close();
     }
 }

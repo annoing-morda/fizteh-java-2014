@@ -25,6 +25,7 @@ public class DBCollectionTest {
         TableProviderFactory factory = new MyTableProviderFactory();
         dirPath = tmpFolder.newFolder().getAbsolutePath();
         provider = factory.create(dirPath);
+        System.err.println(File.separator);
     }
     
     @Test

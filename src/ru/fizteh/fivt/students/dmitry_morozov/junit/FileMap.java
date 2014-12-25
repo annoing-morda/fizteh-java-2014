@@ -6,10 +6,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -63,8 +61,8 @@ public class FileMap implements Table {
     private String readString(DataInputStream in) throws IOException,
             BadDBFileException {
         final int sizeOfInt = 4;
-        int len;
-        String res = "";
+        int len;        
+        StringBuilder res = new StringBuilder();
         if (in.available() >= sizeOfInt) {
             len = in.readInt();
             if (0 != len % 2 || in.available() < len) {
@@ -74,13 +72,13 @@ public class FileMap implements Table {
             len /= 2;
             while (len > 0) {
                 char curChar = in.readChar();
-                res += curChar;
+                res.append(curChar);
                 len--;
             }
         } else {
             return null;
         }
-        return res;
+        return res.toString();
     }
 
     public String put(String key, String value) throws IllegalArgumentException {
@@ -100,10 +98,6 @@ public class FileMap implements Table {
         return val;
     }
 
-    public String clearGet(String key) {
-        return table.get(key);
-    }
-
     public List<String> list() {
         List<String> res = new ArrayList<>();
         Set<Entry<String, String>> tableSet = table.entrySet();
@@ -113,40 +107,6 @@ public class FileMap implements Table {
         return res;
     }
 
-    public void printList(PrintWriter pw) {
-        Set<Entry<String, String>> tableSet = table.entrySet();
-        Iterator<Entry<String, String>> checkLast = tableSet.iterator();
-        if (checkLast.hasNext()) {
-            checkLast.next();
-        }
-        for (Entry<String, String> i : tableSet) {
-            if (checkLast.hasNext()) {
-                pw.print(i.getKey() + ", ");
-                checkLast.next();
-            } else {
-                pw.print(i.getKey());
-            }
-        }
-        pw.flush();
-    }
-
-    public void fullList(PrintWriter pw) {
-        Set<Entry<String, String>> tableSet = table.entrySet();
-        Iterator<Entry<String, String>> checkLast = tableSet.iterator();
-        if (checkLast.hasNext()) {
-            checkLast.next();
-        }
-        for (Entry<String, String> i : tableSet) {
-            if (checkLast.hasNext()) {
-                pw.println(i.getKey() + " " + i.getValue());
-                checkLast.next();
-            } else {
-                pw.print(i.getKey() + " " + i.getValue());
-            }
-        }
-        pw.flush();
-    }
-
     public String remove(String key) throws IllegalArgumentException {
         if (key == null) {
             throw new IllegalArgumentException();
@@ -154,7 +114,7 @@ public class FileMap implements Table {
         return table.remove(key);
     }
 
-    public void exit() throws IOException {
+    public void close() throws IOException {
         DataOutputStream out = new DataOutputStream(
                 new FileOutputStream(dbFile));
         Set<Entry<String, String>> tableSet = table.entrySet();

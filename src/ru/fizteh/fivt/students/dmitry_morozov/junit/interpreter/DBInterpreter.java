@@ -8,12 +8,12 @@ import java.util.TreeSet;
 import ru.fizteh.fivt.storage.strings.Table;
 import ru.fizteh.fivt.storage.strings.TableProviderFactory;
 import ru.fizteh.fivt.students.dmitry_morozov.junit.DBCollection;
-import ru.fizteh.fivt.students.dmitry_morozov.junit.MyTable;
+import ru.fizteh.fivt.students.dmitry_morozov.junit.TableWithTransactions;
 import ru.fizteh.fivt.students.dmitry_morozov.junit.MyTableProviderFactory;
 
 public class DBInterpreter {
     private DBCollection provider;
-    private MyTable table;
+    private TableWithTransactions table;
     private HashMap<String, Integer> argsCount;
     private TreeSet<String> commandsForTable;
 
@@ -55,7 +55,7 @@ public class DBInterpreter {
 
     }
 
-    public HandlerReturn handle(String[] comAndParams, int bIndex, int eIndex) {
+    public HandlerReturn handle(String[] comAndParams, int bIndex, int eIndex) throws IOException{
         if (comAndParams.length < 1) {
             return new HandlerReturn(HandlerReturnResult.EXIT, "");
         }
@@ -178,9 +178,9 @@ public class DBInterpreter {
     }
 
     public HandlerReturn handleUse(String[] comAndParams, int bIndex, int eIndex) {
-        MyTable newTable;
+        TableWithTransactions newTable;
         try {
-            newTable = (MyTable) provider.getTable(comAndParams[bIndex]);
+            newTable = (TableWithTransactions) provider.getTable(comAndParams[bIndex]);
         } catch (IllegalArgumentException e1) {
             return new HandlerReturn(HandlerReturnResult.ERROR, "");
         }
@@ -255,7 +255,7 @@ public class DBInterpreter {
             if (tableName.equals(curName)) {
                 res += curName + " " + table.size() + "\n";
             } else {
-                MyTable curTable = (MyTable) provider.getTable(curName); 
+                TableWithTransactions curTable = (TableWithTransactions) provider.getTable(curName); 
                 res += curName + " " + curTable.size() + "\n";
                 try {
                     curTable.exit();
@@ -267,9 +267,9 @@ public class DBInterpreter {
         return new HandlerReturn(HandlerReturnResult.SUCCESS, res);
     }
 
-    public HandlerReturn handleExit() {
+    public HandlerReturn handleExit() throws IOException {
         if (table == null) {
-            provider.exit();
+            provider.close();
             return new HandlerReturn(HandlerReturnResult.EXIT, "goodbye\n");
         }
         if (table.getUnsavedChanges() > 0) {
@@ -282,11 +282,11 @@ public class DBInterpreter {
             System.err.println("Couldn't save " + table.getName());
             return new HandlerReturn(HandlerReturnResult.EXIT, "");
         }
-        provider.exit();
+        provider.close();
         return new HandlerReturn(HandlerReturnResult.EXIT, "goodbye\n");
     }
 
-    public void emergencyExit() {
+    public void emergencyExit() throws IOException {
         try {
             if (table != null) {
                 table.exit();
@@ -294,7 +294,7 @@ public class DBInterpreter {
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            provider.exit();
+            provider.close();
         }
     }
 

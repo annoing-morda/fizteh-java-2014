@@ -12,6 +12,8 @@ import ru.fizteh.fivt.storage.strings.Table;
 public class MultiFileHashMap implements Table {
     private static final int FILE_MAPS_CNT = 256;
     private static final int DIRS_CNT = 16;
+    private static final String DIR_SUFFIX = ".dir";
+    private static final String FILE_SUFFIX = ".dat";
     private File rootDir;
     private BitSet openedMaps;
     private FileMap[] maps;
@@ -19,7 +21,7 @@ public class MultiFileHashMap implements Table {
     int size;
 
     public MultiFileHashMap(String path) throws BadDBFileException {
-        String[] splittedPath = path.split("/");
+        String[] splittedPath = path.split(File.separator);
         name = splittedPath[splittedPath.length - 1];
         size = 0;
         rootDir = Utils.safeMkDir(path);
@@ -27,12 +29,9 @@ public class MultiFileHashMap implements Table {
         openedMaps.clear();
         maps = new FileMap[FILE_MAPS_CNT];
         for (int i = 0; i < DIRS_CNT; ++i) {
-            String suffix = "/";
-            if (i < 10) {
-                suffix += "0";
-            }
+            String suffix = File.separator;
             suffix += Integer.toString(i);
-            suffix += ".dir";
+            suffix += DIR_SUFFIX;
             Utils.safeMkDir(path + suffix);
         }
     }
@@ -49,8 +48,7 @@ public class MultiFileHashMap implements Table {
             try {
                 maps[mapNum] = new FileMap(curPath);
             } catch (IOException | BadDBFileException e) {
-                e.printStackTrace();
-                System.err.println("Couldn't access" + curPath);
+                throw new BadDBFileException(e.getMessage());
             }
             openedMaps.set(mapNum);
             return maps[mapNum].put(key, value);
@@ -69,8 +67,7 @@ public class MultiFileHashMap implements Table {
             try {
                 maps[mapNum] = new FileMap(curPath);
             } catch (IOException | BadDBFileException e) {
-                e.printStackTrace();
-                System.err.println("Couldn't access" + curPath);
+                throw new BadDBFileException(e.getMessage());
             }
             openedMaps.set(mapNum);
             return maps[mapNum].get(key);
@@ -89,8 +86,7 @@ public class MultiFileHashMap implements Table {
             try {
                 maps[mapNum] = new FileMap(curPath);
             } catch (IOException | BadDBFileException e) {
-                System.err.println("Couldn't access" + curPath);
-                e.printStackTrace();
+                throw new BadDBFileException(e.getMessage());
             }
             openedMaps.set(mapNum);
             return maps[mapNum].remove(key);
@@ -109,8 +105,7 @@ public class MultiFileHashMap implements Table {
                 try {
                     maps[i] = new FileMap(curPath);
                 } catch (IOException | BadDBFileException e) {
-                    System.err.println("Couldn't access" + curPath);
-                    e.printStackTrace();
+                    throw new BadDBFileException(e.getMessage());
                 }
                 t = maps[i].list();
                 res.addAll(t);
@@ -128,7 +123,7 @@ public class MultiFileHashMap implements Table {
                 if (maps[i].isEmpty()) {
                     toDelete.add(i);
                 }
-                maps[i].exit();
+                maps[i].close();
             }
         }
         for (Integer num : toDelete) {
@@ -136,12 +131,9 @@ public class MultiFileHashMap implements Table {
             tdel.delete();
         }
         for (int i = 0; i < DIRS_CNT; i++) {
-            String suffix = "/";
-            if (i < 10) {
-                suffix += "0";
-            }
+            String suffix = File.separator;
             suffix += Integer.toString(i);
-            suffix += ".dir";
+            suffix += DIR_SUFFIX;
             File tdir = new File(rootDir.getAbsolutePath() + suffix);
             tdir.delete(); // Won't be deleted if there're any files.
         }
@@ -154,22 +146,12 @@ public class MultiFileHashMap implements Table {
         int ndir = Math.abs(hash % DIRS_CNT);
         int nfile = Math.abs(hash / DIRS_CNT % DIRS_CNT);
         String path = rootDir.getAbsolutePath();
-        String suffix = "/";
-        if (ndir < 10) {
-            suffix += "0";
-        }
-        suffix += Integer.toString(ndir) + ".dir/";
-        if (nfile < 10) {
-            suffix += "0";
-        }
-        suffix += Integer.toString(nfile) + ".dat";
+        String suffix = File.separator;
+        suffix += Integer.toString(ndir) + DIR_SUFFIX;
+        suffix += Integer.toString(nfile) + FILE_SUFFIX;
         path += suffix;
 
         return path;
-    }
-
-    public int getUnsavedChanges() {
-        return 0;
     }
 
     @Override
@@ -190,8 +172,7 @@ public class MultiFileHashMap implements Table {
                     res += maps[i].size();
                     openedMaps.set(i);
                 } catch (IOException | BadDBFileException e) {
-                    System.err.println("Couldn't access" + curPath);
-                    e.printStackTrace();
+                    throw new BadDBFileException(e.getMessage());
                 }
             }
         }
